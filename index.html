@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Web Project Follow-up Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --side:#1b1a45; --side2:#2a2866; --sand:#f6f1e9; --card:#fffdf9; --line:#e5ddd0; --ink:#1d1c33; --muted:#7a7590;
+  --vio:#6d5dfc; --viosoft:#ebe8ff; --late:#ff5a3c; --today:#f2a100; --soon:#6d5dfc; --ok:#17a673;
+  --head:'Space Grotesk',system-ui,sans-serif; --body:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:var(--body);background:var(--sand);color:var(--ink);font-size:14px;display:grid;grid-template-columns:290px 1fr;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+
+/* sidebar */
+aside{background:var(--side);color:#fff;padding:22px 18px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;gap:10px;align-items:center}
+.logo{width:38px;height:38px;border-radius:11px;background:var(--vio);display:grid;place-items:center;font-family:var(--head);font-weight:700}
+.brand b{font-family:var(--head);font-size:17px;display:block;line-height:1.1}
+.brand span{font-size:12px;color:#a9a5d6}
+.dayrow{display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--side2);border-radius:10px;padding:8px 10px;font-size:13px}
+.mini{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:7px;padding:3px 8px;font-size:12px;font-weight:600}
+.mini:hover{background:rgba(255,255,255,.22)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.st{background:var(--side2);border-radius:12px;padding:10px 12px}
+.st b{font-family:var(--head);font-size:26px;display:block;line-height:1.1}
+.st span{font-size:11.5px;color:#a9a5d6}
+.st.l b{color:#ff9b86}.st.t b{color:#ffcf66}.st.s b{color:#7be0b8}
+.actions{display:grid;gap:8px}
+.abtn{border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;border-radius:10px;padding:9px 12px;font-weight:600;text-align:left;transition:.15s}
+.abtn:hover{background:rgba(255,255,255,.1)}
+.abtn.pri{background:var(--vio);border-color:var(--vio)}
+.abtn.pri:hover{background:#8174ff}
+.abtn:disabled{opacity:.45;cursor:not-allowed}
+aside h4{font-family:var(--head);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#a9a5d6;font-weight:500}
+.feed{list-style:none;padding:0;display:grid;gap:6px;font-size:12.5px}
+.feed li{background:var(--side2);border-radius:9px;padding:7px 10px;display:flex;justify-content:space-between;gap:8px}
+.feed small{color:#a9a5d6;white-space:nowrap}
+
+/* main */
+main{padding:22px 24px 30px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
+.top h1{font-family:var(--head);font-size:clamp(24px,3.4vw,34px);line-height:1.1}
+.top p{color:var(--muted);margin-top:4px}
+.seg{display:inline-flex;background:#ece5d8;border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;border-radius:8px;padding:6px 13px;font-weight:600;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.tools input,.tools select{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;min-width:0}
+.tools input{flex:1;min-width:160px}
+
+/* sequence strip */
+.seq{display:flex;gap:0;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.step{flex:1;padding:12px 14px;position:relative;display:flex;gap:10px;align-items:center;border-right:1px solid var(--line);transition:.25s;min-width:0}
+.step:last-child{border-right:0}
+.step i{font-style:normal;width:28px;height:28px;border-radius:50%;background:var(--viosoft);color:var(--vio);display:grid;place-items:center;font-family:var(--head);font-weight:700;flex:none;transition:.25s}
+.step b{display:block;font-size:13px;font-family:var(--head)}
+.step small{color:var(--muted);font-size:11.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step.active{background:var(--viosoft)}
+.step.active i{background:var(--vio);color:#fff;transform:scale(1.15)}
+.step.done i{background:var(--ok);color:#fff}
+
+/* board */
+.board{display:flex;gap:14px;overflow-x:auto;padding-bottom:12px;align-items:flex-start}
+.col{flex:0 0 285px;background:#efe8da;border-radius:16px;padding:10px}
+.col.off{opacity:.55}
+.ch{padding:4px 6px 10px}
+.ch .t{display:flex;justify-content:space-between;align-items:center}
+.ch b{font-family:var(--head);font-size:15px}
+.cnt{font-size:12px;font-weight:700;background:#fff;border-radius:99px;padding:1px 9px}
+.ch small{color:var(--muted);font-size:12px}
+.bar{height:4px;border-radius:4px;background:#e0d6c4;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--vio)}
+.cards{display:grid;gap:9px}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--soon);border-radius:12px;padding:10px 12px;display:grid;gap:5px}
+.card.late{border-left-color:var(--late)}.card.today{border-left-color:var(--today)}.card.done{border-left-color:var(--ok)}
+.card .n{font-weight:600}
+.card .s{font-size:12px;color:var(--muted)}
+.card .r{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.tag{font-size:11.5px;font-weight:700;border-radius:6px;padding:1px 7px}
+.tag.late{background:#ffe5df;color:#c4351b}.tag.today{background:#fff0cc;color:#936400}.tag.soon{background:var(--viosoft);color:#4a3dd1}.tag.done{background:#d9f5ea;color:#0d7a54}
+.dots{display:inline-flex;gap:3px}.dots i{width:7px;height:7px;border-radius:50%;background:#ddd4c3}.dots i.f{background:var(--vio)}
+.send{border:0;background:var(--ink);color:#fff;border-radius:8px;padding:5px 12px;font-weight:600;font-size:12.5px}
+.send:hover{background:var(--vio)}
+.more{border:1px dashed #cdbfa6;background:transparent;border-radius:10px;padding:7px;color:var(--muted);font-weight:600}
+.empty{padding:16px 8px;text-align:center;color:var(--muted);font-size:12.5px}
+.noteline{margin-top:14px;color:var(--muted);font-size:12.5px}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(20,18,50,.65);display:none;align-items:center;justify-content:center;padding:12px;z-index:50}
+.modal.open{display:flex}
+.mbox{background:#fff;border-radius:18px;max-width:560px;width:100%;max-height:94vh;overflow:auto}
+.mhead{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.mhead h3{font-family:var(--head);font-size:20px}
+.mhead small{color:var(--muted)}
+.x{border:0;background:#f0ebe1;border-radius:8px;width:30px;height:30px;font-size:15px}
+.mbody{padding:14px 20px;display:grid;gap:10px}
+.mbody textarea{width:100%;min-height:210px;border:1px solid var(--line);border-radius:12px;padding:10px;line-height:1.55;resize:vertical;background:#fffdf9}
+.mfoot{padding:0 20px 18px;display:flex;gap:8px;flex-wrap:wrap}
+.b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font-weight:600}
+.b:hover{border-color:var(--vio);color:var(--vio)}
+.b.pri{background:var(--vio);border-color:var(--vio);color:#fff}.b.pri:hover{background:#5646e8;color:#fff}
+.b.wa{background:#1fa855;border-color:#1fa855;color:#fff}
+.hint{font-size:12px;color:var(--muted)}
+select.b{padding:8px 10px}
+.rrow{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.rrow input[type=number]{width:54px;border:1px solid var(--line);border-radius:6px;padding:3px 6px}
+.sw{width:36px;height:21px;border-radius:99px;background:#d8cfbe;position:relative;border:0}
+.sw:after{content:"";position:absolute;left:2px;top:2px;width:17px;height:17px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:var(--vio)}.sw.on:after{left:17px}
+.lnk{border:0;background:none;color:var(--vio);font-weight:600;text-decoration:underline;font-size:12.5px}
+.field label{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px}
+.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+.rc{display:flex;gap:8px;align-items:center;padding:5px 8px;border-radius:8px;font-size:13px;cursor:pointer}.rc:hover{background:#f5f0e6}.rc.dis{opacity:.5;cursor:not-allowed}.rc small{color:var(--muted);margin-left:auto}
+.rlist{max-height:170px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:4px}
+.srow{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;gap:3px;font-size:13px;background:#fffdf9}
+.srow .r{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.srow small{color:var(--muted)}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.toast.show{opacity:1}
+
+
+body.locked aside,body.locked main{display:none}
+body.locked{display:block}
+#auth{position:fixed;inset:0;z-index:100;background:var(--side);display:none;align-items:center;justify-content:center;padding:16px;overflow:auto}
+body.locked #auth{display:flex}
+.abox{background:#fff;border-radius:20px;max-width:400px;width:100%;padding:28px 26px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.abox .logo{margin-bottom:14px;color:#fff}
+.abox h2{font-family:var(--head);font-size:24px}
+.abox p{color:var(--muted);margin:4px 0 16px}
+.abox .field{margin-bottom:12px}
+.abox .field input{padding:10px 12px;border-radius:10px}
+.abox .b{width:100%;padding:11px;font-size:14px}
+.aerr{color:#c4351b;font-size:13px;min-height:18px;margin-bottom:8px}
+.abox small{display:block;color:var(--muted);margin-top:12px;font-size:12px;line-height:1.45}
+.showpw{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);margin-bottom:12px}
+@media(max-width:860px){
+  body{grid-template-columns:1fr}
+  aside{position:static;height:auto}
+  main{padding:16px}
+  .seq{flex-direction:column}.step{border-right:0;border-bottom:1px solid var(--line)}.step:last-child{border-bottom:0}
+  .col{flex-basis:84vw}
+}
+</style>
+</head>
+<body class="locked">
+
+
+<div id="auth"><div class="abox">
+  <div class="logo">&lt;/&gt;</div>
+  <h2 id="aTitle">Sign in</h2><p id="aSub">Project Follow-ups</p>
+  <form onsubmit="return authSubmit(event)" autocomplete="on">
+    <div class="field"><label>Username</label><input id="aUser" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input id="aPass" type="password" autocomplete="current-password"></div>
+    <div class="field" id="aConfWrap" style="display:none"><label>Confirm password</label><input id="aConf" type="password" autocomplete="new-password"></div>
+    <label class="showpw"><input type="checkbox" onchange="['aPass','aConf'].forEach(i=>document.getElementById(i).type=this.checked?'text':'password')"> Show password</label>
+    <div class="aerr" id="aErr"></div>
+    <button class="b pri" id="aBtn" type="submit">Sign in</button>
+  </form>
+  <small id="aNote"></small>
+</div></div>
+<aside>
+  <div class="brand"><div class="logo">&lt;/&gt;</div><div><b>Project Follow-ups</b><span>Web development clients</span></div></div>
+  <div class="dayrow"><span>Today <b id="todayLabel"></b></span>
+    <span><button class="mini" onclick="shiftDay(1)">+1 day</button> <button class="mini" onclick="shiftDay(0)">Reset</button></span></div>
+  <div class="stats">
+    <div class="st l"><b id="sLate">0</b><span>Overdue</span></div>
+    <div class="st t"><b id="sToday">0</b><span>Due today</span></div>
+    <div class="st s"><b id="sSent">0</b><span>Sent today</span></div>
+    <div class="st"><b id="sActive">0</b><span>Active projects</span></div>
+  </div>
+  <div class="actions">
+    <button class="abtn pri" id="batchBtn" onclick="startBatch()">Send today's batch</button>
+    <button class="abtn" onclick="openProject()">+ Add project</button>
+    <button class="abtn" onclick="openRules()">Rules & templates</button>
+    <button class="abtn" onclick="openSched()">Schedule message <span id="schedBadge"></span></button>
+    <button class="abtn" onclick="openCloud()">Cloud auto-send <span id="cloudBadge"></span></button>
+    <button class="abtn" onclick="copyPayload()">Copy n8n payload</button>
+    <button class="abtn" onclick="exportCSV()">Export CSV</button>
+    <button class="abtn" onclick="demoFlow()">Run the flow demo</button>
+    <button class="abtn" onclick="openPw()">Change password</button>
+    <button class="abtn" onclick="signOut()">Sign out (<span id="whoami"></span>)</button>
+  </div>
+  <div><h4>Recent activity</h4><ul class="feed" id="log" style="margin-top:8px"></ul></div>
+</aside>
+
+<main>
+  <div class="top">
+    <div><h1>Which client needs a nudge today?</h1>
+    <p>Web projects are grouped by stage, from enquiry to maintenance. Each card shows when the next follow-up is due.</p></div>
+    <div class="seg"><button id="vDue" class="on" onclick="setView('due')">Due now</button><button id="vAll" onclick="setView('all')">All projects</button></div>
+  </div>
+
+  <div class="tools">
+    <input id="fSearch" placeholder="Search client, project or phone" oninput="render()">
+    <select id="fStage" onchange="render()"><option value="">All stages</option></select>
+  </div>
+
+  <div class="seq" id="seq"></div>
+  <div class="board" id="board"></div>
+  <p class="noteline">Fixed-cadence workflow: trigger, rule check, message writer, channel, log. The projects shown are sample entries: edit or remove them and add your own with + Add project. For automatic 24×7 sending, turn on Cloud auto-send: the server sends due follow-ups to each client's WhatsApp number every day at 10:00 AM IST. Projects need a valid phone number.</p>
+</main>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="mbox">
+  <div class="mhead"><div><small id="mKick"></small><h3 id="mTitle"></h3><small id="mSub"></small></div><button class="x" onclick="closeModal()">✕</button></div>
+  <div class="mbody"><textarea id="mText"></textarea><div class="hint">Edit the message if needed. The follow-up is logged when you send.</div></div>
+  <div class="mfoot" id="mFoot"></div>
+</div></div>
+
+<div class="modal" id="rulesModal" onclick="if(event.target===this)this.classList.remove('open')"><div class="mbox">
+  <div class="mhead"><div><h3>Rules & templates</h3><small>Cadence per stage, daily cap and signature</small></div><button class="x" onclick="document.getElementById('rulesModal').classList.remove('open')">✕</button></div>
+  <div class="mbody" id="rulesBody"></div>
+</div></div>
+
+<div class="modal" id="tplModal" onclick="if(event.target===this)this.classList.remove('open')"><div class="mbox">
+  <div class="mhead"><div><h3 id="tplTitle"></h3><small>Placeholders: {name} {client} {project} {value} {attempt} {sign}</small></div><button class="x" onclick="document.getElementById('tplModal').classList.remove('open')">✕</button></div>
+  <div class="mbody"><textarea id="tplText"></textarea></div>
+  <div class="mfoot"><button class="b pri" onclick="saveTpl()">Save</button><button class="b" onclick="resetTpl()">Restore default</button></div>
+</div></div>
+
+<div class="modal" id="projModal" onclick="if(event.target===this)this.classList.remove('open')"><div class="mbox">
+  <div class="mhead"><div><h3 id="pTitle">Add project</h3><small>Saved in this browser</small></div><button class="x" onclick="document.getElementById('projModal').classList.remove('open')">✕</button></div>
+  <div class="mbody">
+    <div class="field"><label>Client / company *</label><input id="pClient"></div>
+    <div class="field"><label>Contact person</label><input id="pContact"></div>
+    <div class="field"><label>WhatsApp number</label><input id="pPhone" placeholder="10-digit number or with country code"></div>
+    <div class="field"><label>Email</label><input id="pEmail"></div>
+    <div class="field"><label>Project</label><input id="pProject" placeholder="e.g. 5-page business website"></div>
+    <div class="field"><label>Project value (optional)</label><input id="pValue" type="number" min="0"></div>
+    <div class="field"><label>Stage</label><select id="pStage" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:7px"></select></div>
+  </div>
+  <div class="mfoot"><button class="b pri" onclick="saveProject()">Save</button><button class="b" id="pDel" onclick="deleteProject()">Remove</button></div>
+</div></div>
+
+<div class="modal" id="pwModal" onclick="if(event.target===this)this.classList.remove('open')"><div class="mbox">
+  <div class="mhead"><div><h3>Change password</h3></div><button class="x" onclick="document.getElementById('pwModal').classList.remove('open')">✕</button></div>
+  <div class="mbody">
+    <div class="field"><label>Current password</label><input id="pwOld" type="password"></div>
+    <div class="field"><label>New password (min 6 characters)</label><input id="pwNew" type="password"></div>
+    <div class="aerr" id="pwErr"></div>
+  </div>
+  <div class="mfoot"><button class="b pri" onclick="changePw()">Update</button></div>
+</div></div>
+<div class="modal" id="schedModal" onclick="if(event.target===this)this.classList.remove('open')"><div class="mbox">
+  <div class="mhead"><div><h3>Schedule a message</h3><small>Sent automatically by the cloud at the chosen time</small></div><button class="x" onclick="document.getElementById('schedModal').classList.remove('open')">✕</button></div>
+  <div class="mbody">
+    <div class="field"><label>Send to (clients with a valid WhatsApp number)</label>
+      <div class="hint" style="margin-bottom:4px"><button class="lnk" onclick="schedAll(true)">Select all</button> · <button class="lnk" onclick="schedAll(false)">Clear</button></div>
+      <div class="rlist" id="sRecips"></div></div>
+    <div class="field"><label>Message (use {name} {client} {project} {sign})</label><textarea id="sMsg" style="min-height:110px" placeholder="Hello {name}, ..."></textarea></div>
+    <div class="field"><label>Date and time (India time)</label><input id="sWhen" type="datetime-local"></div>
+    <div class="field"><label>Repeat</label><select id="sRepeat" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:7px"><option value="none">Only once</option><option value="daily">Every day</option><option value="weekly">Every week</option><option value="monthly">Every month</option></select></div>
+    <div class="hint" id="sWarn"></div>
+    <b style="font-family:var(--head)">Scheduled messages</b>
+    <div style="display:grid;gap:7px" id="sList"></div>
+  </div>
+  <div class="mfoot"><button class="b pri" onclick="saveSched()">Schedule</button></div>
+</div></div>
+<div class="modal" id="cloudModal" onclick="if(event.target===this)this.classList.remove('open')"><div class="mbox">
+  <div class="mhead"><div><h3>Cloud auto-send</h3><small>Sends due follow-ups to client WhatsApp numbers every day at 10:00 AM IST, even when this page is closed</small></div><button class="x" onclick="document.getElementById('cloudModal').classList.remove('open')">✕</button></div>
+  <div class="mbody">
+    <div class="rrow" style="grid-template-columns:auto 1fr"><button class="sw" id="cOn" onclick="this.classList.toggle('on')"></button><b>Automatic sending enabled</b></div>
+    <div class="field"><label>Function URL (followupApi, from firebase deploy)</label><input id="cUrl" placeholder="https://asia-south1-xxxx.cloudfunctions.net/followupApi"></div>
+    <div class="field"><label>Sync key (the SYNC_KEY secret you set)</label><input id="cKey" type="password"></div>
+    <div class="field"><label>WhatsApp Business phone number ID (Meta)</label><input id="cPnid"></div>
+    <div class="field"><label>Message type</label><select id="cMode" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:7px"><option value="template">Approved templates (works any time, recommended)</option><option value="text">Plain text (only if the client messaged you in the last 24 hours)</option></select></div>
+    <div class="field"><label>Template name prefix</label><input id="cPrefix" placeholder="fu_"></div>
+    <div class="field"><label>Template language code</label><input id="cLang" placeholder="en"></div>
+    <div class="hint" id="cStatus">Not connected yet.</div>
+    <div class="hint">Template names are the prefix plus the stage, e.g. fu_new_enquiry, fu_proposal_sent. See README for the 9 texts to approve in Meta.</div>
+  </div>
+  <div class="mfoot"><button class="b pri" onclick="saveCloud()">Save &amp; sync</button><button class="b" onclick="cloudRun(true)">Test (dry run)</button><button class="b wa" onclick="cloudRun(false)">Send due now</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STAGES=["New Enquiry","Proposal Sent","Advance Pending","Awaiting Content","In Progress","Review & Feedback","Final Payment Due","Live / Handover","Maintenance Offer"];
+const SEED=[
+ {id:"P1",client:"Akshar Vectorart Pvt. Ltd.",contact:"",phone:"",email:"",project:"Printing company website",value:0,stage:"Review & Feedback"},
+ {id:"P2",client:"Athena Global Logistics Network",contact:"",phone:"",email:"",project:"Blog pages for PHP website",value:0,stage:"Awaiting Content"},
+ {id:"P3",client:"Hexastra Infotech",contact:"",phone:"",email:"",project:"Website + Firebase admin dashboard",value:0,stage:"In Progress"},
+ {id:"P4",client:"Mellona Foods",contact:"",phone:"",email:"",project:"Business website",value:0,stage:"Proposal Sent"},
+ {id:"P5",client:"Natural Pest Solutions",contact:"",phone:"",email:"",project:"Website + Firebase admin dashboard",value:0,stage:"Live / Handover"},
+ {id:"P6",client:"Pisum Foods",contact:"",phone:"",email:"",project:"Multi-page export website",value:0,stage:"Final Payment Due"},
+ {id:"P7",client:"SMX India",contact:"",phone:"",email:"",project:"Industrial machine product pages",value:0,stage:"Advance Pending"},
+ {id:"P8",client:"Sorelli Noir",contact:"",phone:"",email:"",project:"Luxury brand website + campaign assets",value:0,stage:"In Progress"},
+ {id:"P9",client:"VMAL Home Care Products",contact:"",phone:"",email:"",project:"Homepage rebrand to logo colours",value:0,stage:"Review & Feedback"},
+ {id:"P10",client:"Green Sparrow Trading LLP",contact:"",phone:"",email:"",project:"Website + portfolio page",value:0,stage:"New Enquiry"}
+];
+const DEFAULT_SIGN="Regards,\nYour Name\nWeb Developer | your-email@example.com";
+const DEFAULT_TPL={
+ "New Enquiry":"Hello {name},\n\nThank you for your interest in a website for {client}. I would love to understand your goals, pages needed and timeline. Could we schedule a quick 15-minute call this week?\n\n{sign}",
+ "Proposal Sent":"Hello {name},\n\nI shared the proposal for {project} a few days ago (follow-up {attempt}). Do you have any questions about the scope, timeline or pricing? I am happy to adjust it and get started once you confirm.\n\n{sign}",
+ "Advance Pending":"Hello {name},\n\nThank you for confirming {project}. To book your slot and start design, I just need the advance payment as per the proposal. Please let me know once it is done or if you need the invoice again.\n\n{sign}",
+ "Awaiting Content":"Hello {name},\n\nFor {project} we are waiting on your content (logo, text, photos, product details). Reminder {attempt}: the sooner I receive it, the sooner we can stay on schedule for launch.\n\n{sign}",
+ "In Progress":"Hello {name},\n\nQuick progress update on {project}: work is moving as planned. I will share the next preview link soon. Please tell me if anything has changed on your side.\n\n{sign}",
+ "Review & Feedback":"Hello {name},\n\nThe preview of {project} is ready for your review. Please check all pages on mobile and desktop and send your feedback in one list so I can apply the changes together (reminder {attempt}).\n\n{sign}",
+ "Final Payment Due":"Hello {name},\n\n{project} is ready to go live. The remaining payment is due before launch and handover of files and access. Please confirm the payment date, or let me know if you need the invoice again.\n\n{sign}",
+ "Live / Handover":"Hello {name},\n\nYour website is live. Thank you for working with me! If you are happy with the result, a short testimonial or Google review would mean a lot, and please refer me to anyone who needs a website.\n\n{sign}",
+ "Maintenance Offer":"Hello {name},\n\nIt has been a while since {project} launched. I offer monthly maintenance (updates, backups, security and small changes), and your domain/hosting renewal may be coming up. Would you like me to share a plan?\n\n{sign}"
+};
+const DEFAULT_RULES={"New Enquiry":{on:true,every:1,max:3},"Proposal Sent":{on:true,every:3,max:4},"Advance Pending":{on:true,every:2,max:4},"Awaiting Content":{on:true,every:3,max:5},"In Progress":{on:true,every:5,max:6},"Review & Feedback":{on:true,every:2,max:4},"Final Payment Due":{on:true,every:2,max:5},"Live / Handover":{on:true,every:7,max:1},"Maintenance Offer":{on:true,every:30,max:2}};
+const PRIORITY={"Final Payment Due":0,"Advance Pending":1,"New Enquiry":2,"Proposal Sent":3,"Review & Feedback":4,"Awaiting Content":5,"In Progress":6,"Live / Handover":7,"Maintenance Offer":8};
+const lab=s=>s;
+
+/* state */
+const KEY="fu_web_v1"; let mem=null;
+function load(){
+  if(mem) return mem; let s=null;
+  try{s=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+  const d={wa:"auto",cc:"91",rules:JSON.parse(JSON.stringify(DEFAULT_RULES)),tpl:{},sign:DEFAULT_SIGN,cap:15,start:null,offset:0,log:{},events:[],projects:JSON.parse(JSON.stringify(SEED))};
+  mem=Object.assign(d,s||{}); mem.rules=Object.assign(d.rules,(s&&s.rules)||{});
+  if(mem.start===null) mem.start=dayN(); return mem;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){}cloudSoon()}
+const getProjects=()=>load().projects;
+function dayN(){const d=new Date();return Math.floor((d.getTime()-d.getTimezoneOffset()*60000)/86400000)}
+function today(){return dayN()+load().offset}
+function fmtDay(n){return new Date(n*86400000).toLocaleDateString('en-IN',{day:'2-digit',month:'short',timeZone:'UTC'})}
+function shiftDay(k){const s=load();s.offset=k===0?0:s.offset+k;save();render();toast(k===0?"Back to today":"Demo date: "+fmtDay(today()))}
+const money=n=>n?"₹ "+Number(n).toLocaleString('en-IN'):"";
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const person=p=>p.contact||p.client;
+
+/* logic */
+function leadState(l){
+  const s=load(),r=s.rules[l.stage]; let g=s.log[l.id];
+  if(g&&g.stage!==l.stage){g.count=0;g.stage=l.stage}
+  const count=g?g.count:0;
+  if(!r||!r.on) return {status:"off",count,rule:r};
+  if(count>=r.max) return {status:"done",count,rule:r};
+  let due=g&&g.lastAt!=null?g.lastAt+r.every:s.start; if(g&&g.snooze) due=Math.max(due,g.snooze);
+  const delta=due-today();
+  return {status:delta<0?"late":delta===0?"today":"soon",due,delta,count,rule:r};
+}
+const allItems=()=>getProjects().map(l=>({lead:l,st:leadState(l)}));
+const RANK={late:0,today:1,soon:2,done:3,off:4};
+function sortItems(a){return a.sort((x,y)=>RANK[x.st.status]-RANK[y.st.status]||(x.st.due||0)-(y.st.due||0)||(PRIORITY[x.lead.stage]??9)-(PRIORITY[y.lead.stage]??9)||(y.lead.value||0)-(x.lead.value||0))}
+const dueItems=()=>sortItems(allItems().filter(x=>x.st.status==="late"||x.st.status==="today"));
+function buildMessage(l){
+  const s=load(),g=s.log[l.id],attempt=(g&&g.stage===l.stage?g.count:0)+1;
+  const t=s.tpl[l.stage]||DEFAULT_TPL[l.stage]||DEFAULT_TPL["New Enquiry"];
+  return t.replace(/\{name\}/g,person(l)).replace(/\{client\}/g,l.client).replace(/\{project\}/g,l.project||"your website").replace(/\{value\}/g,l.value?money(l.value):"").replace(/\{attempt\}/g,attempt).replace(/\{sign\}/g,s.sign);
+}
+function logSend(l,ch){
+  const s=load(),g=s.log[l.id]&&s.log[l.id].stage===l.stage?s.log[l.id]:{count:0,stage:l.stage};
+  g.count++;g.lastAt=today();g.stage=l.stage;delete g.snooze;s.log[l.id]=g;
+  s.events.unshift({day:today(),id:l.id,name:l.client,ch,stage:l.stage});s.events=s.events.slice(0,200);save();
+}
+
+/* render */
+let view="due", expanded={};
+function setView(v){view=v;document.getElementById('vDue').classList.toggle('on',v==='due');document.getElementById('vAll').classList.toggle('on',v==='all');render()}
+const set=(id,v)=>document.getElementById(id).textContent=v;
+function render(){
+  const s=load(),T=today(),items=allItems();
+  set('todayLabel',fmtDay(T)+(s.offset?` (+${s.offset})`:""));
+  const late=items.filter(x=>x.st.status==="late").length,tod=items.filter(x=>x.st.status==="today").length;
+  const sent=s.events.filter(e=>e.day===T).length;
+  set('sLate',late);set('sToday',tod);set('sSent',sent);
+  set('sActive',items.filter(x=>["late","today","soon"].includes(x.st.status)).length);
+  const bb=document.getElementById('batchBtn');bb.textContent=`Send today's batch (${Math.min(late+tod,s.cap)})`;bb.disabled=late+tod===0;
+  const fs=document.getElementById('fStage');if(fs.options.length===1)STAGES.forEach(x=>fs.add(new Option(x,x)));
+  const q=document.getElementById('fSearch').value.trim().toLowerCase(),sf=fs.value;
+  if(!flowBusy) renderSeq(late+tod,sent);
+  const cols=STAGES.filter(st=>!sf||st===sf).map(st=>{
+    const r=s.rules[st], all=items.filter(x=>x.lead.stage===st);
+    let list=all.filter(x=>!q||`${x.lead.client} ${x.lead.contact} ${x.lead.project} ${x.lead.phone}`.toLowerCase().includes(q));
+    if(view==="due") list=list.filter(x=>x.st.status==="late"||x.st.status==="today");
+    list=sortItems(list);
+    if(!all.length && !r.on) return "";
+    const dueN=all.filter(x=>x.st.status==="late"||x.st.status==="today").length;
+    const doneN=all.filter(x=>x.st.status==="done").length;
+    const lim=expanded[st]?999:8, shown=list.slice(0,lim);
+    return `<div class="col ${r.on?'':'off'}"><div class="ch"><div class="t"><b>${st}</b><span class="cnt">${dueN} due / ${all.length}</span></div>
+      <small>${r.on?`every ${r.every} day${r.every>1?'s':''} · max ${r.max}`:'automation off'}</small>
+      <div class="bar"><i style="width:${all.length?Math.round(doneN/all.length*100):0}%"></i></div></div>
+      <div class="cards">${shown.length?shown.map(card).join(""):`<div class="empty">${view==='due'?'Nothing due here':'No projects'}</div>`}
+      ${list.length>lim?`<button class="more" onclick="expanded['${st}']=true;render()">Show ${list.length-lim} more</button>`:""}</div></div>`;
+  }).join("");
+  document.getElementById('board').innerHTML=cols||`<div class="empty">No matching projects</div>`;
+  renderLog();
+}
+function card({lead:l,st}){
+  const tag=st.status==="late"?`${-st.delta}d late`:st.status==="today"?"Due today":st.status==="soon"?fmtDay(st.due):st.status==="done"?"Cycle done":"Off";
+  const dots=st.rule?Array.from({length:st.rule.max},(_,i)=>`<i class="${i<st.count?'f':''}"></i>`).join(""):"";
+  const can=["late","today","soon"].includes(st.status);
+  return `<div class="card ${st.status}"><div class="r"><span class="n">${esc(l.client)}</span><span class="tag ${st.status}">${tag}</span></div>
+    <div class="s">${esc(l.project||"")}${l.value?" · "+money(l.value):""}</div>
+    <div class="s">${l.contact?esc(l.contact)+" · ":""}${l.phone?esc(l.phone):"<i>no phone added</i>"}</div>
+    <div class="r"><span class="dots">${dots}</span><span>${l.phone?`<button class="lnk" onclick="openChat('${esc(l.id)}')">Chat</button> `:""}<button class="lnk" onclick="openProject('${esc(l.id)}')">Edit</button> ${can?`<button class="send" onclick="openComposer('${esc(l.id)}')">Follow up</button>`:""}</span></div></div>`;
+}
+function renderSeq(due,sent){
+  const s=load(),on=Object.values(s.rules).filter(r=>r.on).length;
+  const N=[["Trigger",`${due} due now`],["Rules",`${on} stages active`],["Writer",`${Math.min(due,s.cap)} drafts ready`],["Channel",`${sent} sent today`],["Log",`${Object.keys(s.log).length} projects tracked`]];
+  document.getElementById('seq').innerHTML=N.map((n,i)=>`<div class="step"><i>${i+1}</i><div><b>${n[0]}</b><small>${n[1]}</small></div></div>`).join("");
+}
+let flowBusy=false;
+function animateFlow(cb){
+  if(flowBusy)return;flowBusy=true;const st=[...document.querySelectorAll('.step')];st.forEach(n=>n.classList.remove('active','done'));let i=0;
+  (function go(){if(i>0)st[i-1].classList.replace('active','done');if(i>=st.length){setTimeout(()=>{flowBusy=false;cb&&cb()},450);return}st[i].classList.add('active');i++;setTimeout(go,360)})();
+}
+function demoFlow(){animateFlow(()=>render())}
+function renderLog(){updSchedBadge();
+  const s=load();document.getElementById('log').innerHTML=s.events.length?s.events.slice(0,8).map(e=>`<li><span>${esc(e.name)} · ${esc(e.ch)}</span><small>${fmtDay(e.day)}</small></li>`).join(""):`<li><span>No messages sent yet</span></li>`;
+}
+
+/* rules */
+function openRules(){
+  const s=load();
+  document.getElementById('rulesBody').innerHTML=STAGES.map(st=>{const r=s.rules[st];
+    return `<div class="rrow"><button class="sw ${r.on?'on':''}" onclick="toggleRule('${st}')"></button><div><b>${st}</b><br>every <input type="number" min="1" max="90" value="${r.every}" onchange="setRule('${st}','every',this.value)"> days, max <input type="number" min="1" max="20" value="${r.max}" onchange="setRule('${st}','max',this.value)"></div><button class="lnk" onclick="editTpl('${st}')">Message</button></div>`}).join("")
+   +`<div class="field"><label>Daily cap (max messages per day, helps avoid WhatsApp blocks)</label><input type="number" min="1" max="200" value="${s.cap}" onchange="setCap(this.value)"></div>
+     <div class="field"><label>Default country code for 10-digit numbers</label><input type="text" value="${esc(s.cc)}" onchange="setCC(this.value)"></div>
+     <div class="field"><label>WhatsApp opens in</label><select style="width:100%;border:1px solid var(--line);border-radius:8px;padding:7px" onchange="setWAMode(this.value)"><option value="auto" ${s.wa==='auto'?'selected':''}>Auto (app on phone, Web on computer)</option><option value="app" ${s.wa==='app'?'selected':''}>WhatsApp desktop/mobile app (falls back to Web)</option><option value="web" ${s.wa==='web'?'selected':''}>WhatsApp Web</option></select></div>
+     <div class="field"><label>Signature (put your own name here)</label><textarea rows="3" onchange="setSign(this.value)">${esc(s.sign)}</textarea></div>
+     <button class="b" style="justify-self:start" onclick="resetAll()">Reset all follow-up history</button>`;
+  document.getElementById('rulesModal').classList.add('open');
+}
+function toggleRule(st){const s=load();s.rules[st].on=!s.rules[st].on;save();openRules();render()}
+function setRule(st,k,v){const s=load();s.rules[st][k]=Math.max(1,parseInt(v)||1);save();render()}
+function setCap(v){const s=load();s.cap=Math.max(1,parseInt(v)||15);save();render()}
+function setSign(v){load().sign=v;save()}
+function resetAll(){if(!confirm("Erase all follow-up history and start again from today?"))return;const s=load();s.log={};s.events=[];s.start=dayN();s.offset=0;save();document.getElementById('rulesModal').classList.remove('open');render()}
+let tplStage=null;
+function editTpl(st){tplStage=st;document.getElementById('tplTitle').textContent=st+" message";document.getElementById('tplText').value=load().tpl[st]||DEFAULT_TPL[st];document.getElementById('tplModal').classList.add('open')}
+function saveTpl(){load().tpl[tplStage]=document.getElementById('tplText').value;save();document.getElementById('tplModal').classList.remove('open');toast("Template saved")}
+function resetTpl(){delete load().tpl[tplStage];save();document.getElementById('tplText').value=DEFAULT_TPL[tplStage]}
+
+/* project add / edit */
+let editId=null;
+function openProject(id){
+  editId=id||null; const p=id?getProjects().find(x=>x.id===id):{client:"",contact:"",phone:"",email:"",project:"",value:"",stage:"New Enquiry"};
+  set('pTitle',id?"Edit project":"Add project");
+  document.getElementById('pClient').value=p.client;document.getElementById('pContact').value=p.contact||"";document.getElementById('pPhone').value=p.phone||"";
+  document.getElementById('pEmail').value=p.email||"";document.getElementById('pProject').value=p.project||"";document.getElementById('pValue').value=p.value||"";
+  const sel=document.getElementById('pStage');sel.innerHTML=STAGES.map(s=>`<option ${s===p.stage?'selected':''}>${s}</option>`).join("");
+  document.getElementById('pDel').style.display=id?"":"none";
+  document.getElementById('projModal').classList.add('open');
+}
+function saveProject(){
+  const client=document.getElementById('pClient').value.trim(); if(!client){toast("Client name is required");return}
+  const s=load(),o={client,contact:document.getElementById('pContact').value.trim(),phone:document.getElementById('pPhone').value.replace(/[^\d+]/g,""),email:document.getElementById('pEmail').value.trim(),
+    project:document.getElementById('pProject').value.trim(),value:parseInt(document.getElementById('pValue').value)||0,stage:document.getElementById('pStage').value};
+  if(editId) Object.assign(s.projects.find(x=>x.id===editId),o); else s.projects.push(Object.assign({id:"P"+Date.now()},o));
+  save();document.getElementById('projModal').classList.remove('open');render();toast("Project saved");
+}
+function deleteProject(){
+  if(!confirm("Remove this project from the board?"))return;const s=load();s.projects=s.projects.filter(x=>x.id!==editId);delete s.log[editId];save();
+  document.getElementById('projModal').classList.remove('open');render();
+}
+
+/* composer / batch */
+let curLead=null,batch=null;
+function openComposer(id){
+  const l=getProjects().find(x=>x.id===id);if(!l)return;curLead=l;const st=leadState(l);
+  set('mKick',batch?`Batch ${batch.i+1} of ${batch.ids.length}`:"Message ready");set('mTitle',l.client);
+  const nph=normPhone(l.phone);
+  set('mSub',`${l.project||""} · ${l.stage} · follow-up ${st.count+1}/${st.rule?st.rule.max:"-"} · `+(!l.phone?"no phone saved, you will pick the contact in WhatsApp":phoneValid(nph)?"WhatsApp +"+nph:"phone number looks invalid"));
+  document.getElementById('mText').value=buildMessage(l);
+  document.getElementById('mFoot').innerHTML=`<button class="b wa" onclick="sendCur('WhatsApp')">Open WhatsApp & log</button><select id="waMode" class="b" onchange="setWAMode(this.value)" title="Where WhatsApp opens"><option value="auto">Auto</option><option value="app">App</option><option value="web">Web</option></select><button class="b" onclick="copyLink()">Copy link</button>`+(l.email?`<button class="b" onclick="sendCur('Email')">Email</button>`:"")+`<button class="b" onclick="sendCur('Copy')">Copy + log</button><button class="b" onclick="snoozeCur()">Remind tomorrow</button>`+(batch?`<button class="b" onclick="nextBatch()">Skip</button>`:"");
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('waMode').value=load().wa||"auto";
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');batch=null}
+/* ---------- WhatsApp ---------- */
+const isMobile=()=>/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+function normPhone(raw){
+  let d=String(raw||"").replace(/[^\d]/g,"");
+  if(!d) return "";
+  const cc=String(load().cc||"91").replace(/\D/g,"");
+  if(d.startsWith("00")) d=d.slice(2);
+  else if(d.length===11&&d[0]==="0") d=cc+d.slice(1);
+  else if(d.length===10) d=cc+d;
+  return d;
+}
+const phoneValid=d=>d.length>=10&&d.length<=15;
+function waUrl(ph,text,mode){
+  const t=text?`text=${encodeURIComponent(text)}`:"";
+  const q=(ph?`phone=${ph}`:"")+(ph&&t?"&":"")+t;
+  mode=mode||load().wa||"auto";
+  if(mode==="auto") mode=isMobile()?"api":"web";
+  if(!ph) mode="api"; /* no number saved: universal link lets you pick the contact */
+  if(mode==="app") return `whatsapp://send?${q}`;
+  if(mode==="web") return `https://web.whatsapp.com/send?${q}&app_absent=0`;
+  return `https://api.whatsapp.com/send?${q}`;
+}
+function openUrl(url,fallback){
+  if(url.startsWith("whatsapp://")){
+    let left=false;const onb=()=>{left=true};window.addEventListener("blur",onb,{once:true});
+    const a=document.createElement("a");a.href=url;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>{window.removeEventListener("blur",onb);if(!left&&fallback){toast("WhatsApp app not found, opening WhatsApp Web");window.open(fallback,"_blank","noopener")}},1800);
+  }else window.open(url,"_blank","noopener");
+}
+function openWA(l,text){
+  const ph=normPhone(l.phone),mode=load().wa||"auto";
+  const url=waUrl(ph,text),fb=mode==="app"?waUrl(ph,text,ph?"web":"api"):null;
+  openUrl(url,fb);
+}
+function openChat(id){
+  const l=getProjects().find(x=>x.id===id);if(!l)return;
+  const ph=normPhone(l.phone);if(!phoneValid(ph)){toast("Add a valid WhatsApp number first");openProject(id);return}
+  openWA(l,"");
+}
+function setWAMode(v){const s=load();s.wa=v;save();const m=document.getElementById("waMode");if(m)m.value=v;toast("WhatsApp opens in: "+({auto:"Auto",app:"App",web:"Web"}[v]))}
+function setCC(v){const s=load();s.cc=String(v).replace(/\D/g,"")||"91";save();render()}
+function copyLink(){
+  const l=curLead,text=document.getElementById("mText").value.trim(),u=waUrl(normPhone(l.phone),text,"api");
+  (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast("WhatsApp link copied")).catch(()=>prompt("Copy this link:",u));
+}
+function sendCur(ch){
+  const l=curLead,text=document.getElementById("mText").value.trim();if(!text)return;
+  if(ch==="WhatsApp"){
+    const ph=normPhone(l.phone);
+    if(l.phone&&!phoneValid(ph)){toast("Phone number looks invalid, fix it with Edit");return}
+    if(text.length>1800&&!confirm("This message is very long and WhatsApp may cut it. Send anyway?"))return;
+    openWA(l,text);
+  }
+  else if(ch==="Email")window.open(`mailto:${l.email}?subject=${encodeURIComponent("Regarding "+(l.project||"your website project"))}&body=${encodeURIComponent(text)}`);
+  else if(navigator.clipboard)navigator.clipboard.writeText(text).catch(()=>{});
+  logSend(l,ch);const wb=!!batch;document.getElementById("modal").classList.remove("open");
+  animateFlow(()=>{render();if(wb)setTimeout(nextBatch,600);else toast("Logged ✓")});
+}
+function snoozeCur(){const s=load(),g=s.log[curLead.id]||{count:0};g.stage=curLead.stage;g.snooze=today()+1;s.log[curLead.id]=g;save();toast("Will remind tomorrow");if(batch)nextBatch();else{document.getElementById('modal').classList.remove('open');render()}}
+function startBatch(){const ids=dueItems().slice(0,load().cap).map(x=>x.lead.id);if(!ids.length)return;batch={ids,i:-1};nextBatch()}
+function nextBatch(){
+  if(!batch)return;batch.i++;
+  if(batch.i>=batch.ids.length){batch=null;document.getElementById('modal').classList.remove('open');toast("Batch complete ✓");render();return}
+  const l=getProjects().find(x=>x.id===batch.ids[batch.i]);if(!l||leadState(l).status==="done")return nextBatch();openComposer(l.id);
+}
+
+/* export */
+function payload(){return dueItems().slice(0,load().cap).map(({lead:l,st})=>({id:l.id,client:l.client,contact:l.contact,phone:l.phone,email:l.email||"",project:l.project,stage:l.stage,attempt:st.count+1,channel:"whatsapp",phoneIntl:normPhone(l.phone),whatsappLink:waUrl(normPhone(l.phone),buildMessage(l),"api"),message:buildMessage(l)}))}
+function copyPayload(){const p=payload(),j=JSON.stringify({date:fmtDay(today()),items:p},null,2);(navigator.clipboard?navigator.clipboard.writeText(j):Promise.reject()).then(()=>toast(`n8n payload copied (${p.length} messages)`)).catch(()=>prompt("Copy this:",j))}
+function exportCSV(){
+  const rows=[["Client","Contact","Phone","Project","Stage","Status","Due","Follow-ups sent"]];
+  allItems().forEach(({lead:l,st})=>rows.push([l.client,l.contact,l.phone,l.project,l.stage,st.status,st.due!=null?fmtDay(st.due):"",st.count]));
+  const csv="﻿"+rows.map(r=>r.map(c=>`"${String(c==null?"":c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="web-project-followups.csv";a.click();
+}
+let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200)}
+
+/* ---------- login (front-end gate) ---------- */
+const AUTH_KEY="fu_web_auth_v2", SESSION_KEY="fu_web_session", LOCK_KEY="fu_web_lock", IDLE_MIN=30;
+/* Preset login. Only a salted hash is stored here, never the plain password. */
+const DEFAULT_AUTH={user:"admin",salt:"mxw7nyvz6oha",hash:"d2e7a2ee985c4c6c9cd0dc35ebbd905d3e922d93f0bc7825758c00be0d5e4ee6"};
+let authMem=null;
+function getAuth(){let a=null;try{a=JSON.parse(localStorage.getItem(AUTH_KEY)||"null")}catch(e){a=authMem}return a||authMem||DEFAULT_AUTH}
+function putAuth(a){authMem=a;try{localStorage.setItem(AUTH_KEY,JSON.stringify(a))}catch(e){}}
+async function pwOk(a,pw){const h=await hashPw(a.salt,pw);return h===a.hash||(!!a.alt&&h===a.alt)}
+function getLock(){try{return JSON.parse(localStorage.getItem(LOCK_KEY)||"null")||{fails:0,until:0}}catch(e){return {fails:0,until:0}}}
+function putLock(l){try{localStorage.setItem(LOCK_KEY,JSON.stringify(l))}catch(e){}}
+/* auto sign-out after inactivity */
+let idleT=null;
+function bumpIdle(){clearTimeout(idleT);if(!sessionUser())return;idleT=setTimeout(()=>{closeAllModals();signOut();set("aErr","Signed out after "+IDLE_MIN+" minutes of inactivity.")},IDLE_MIN*60000)}
+["click","keydown","mousemove","touchstart"].forEach(ev=>document.addEventListener(ev,bumpIdle,{passive:true}));
+function closeAllModals(){document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open'));batch=null}
+async function sha(t){
+  if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+  let h=5381;for(const c of t)h=((h<<5)+h+c.charCodeAt(0))>>>0;return "x"+h;
+}
+const hashPw=(salt,pw)=>sha(salt+"|"+pw);
+function sessionUser(){try{return sessionStorage.getItem(SESSION_KEY)}catch(e){return window.__sess||null}}
+function setSession(u){try{u?sessionStorage.setItem(SESSION_KEY,u):sessionStorage.removeItem(SESSION_KEY)}catch(e){}window.__sess=u}
+function showAuth(){
+  document.body.classList.add("locked");
+  set("aTitle","Sign in");set("aSub","Project Follow-ups");set("aBtn","Sign in");
+  document.getElementById("aConfWrap").style.display="none";
+  document.getElementById("aPass").autocomplete="current-password";
+  set("aNote","Private board. Sign-in is checked in this browser (salted hash), and you are signed out automatically after "+IDLE_MIN+" minutes of inactivity.");
+  const keep=document.getElementById("aErr").textContent;
+  document.getElementById("aPass").value="";document.getElementById("aConf").value="";
+  document.getElementById("aUser").focus();if(!keep)set("aErr","");
+}
+async function authSubmit(e){
+  e.preventDefault();
+  const u=document.getElementById("aUser").value.trim(), p=document.getElementById("aPass").value, a=getAuth(), err=m=>set("aErr",m), L=getLock();
+  if(!u||!p) return err("Enter username and password."),false;
+  if(Date.now()<L.until) return err("Too many attempts. Try again in "+Math.ceil((L.until-Date.now())/1000)+"s."),false;
+  if(u.toLowerCase()!==a.user.toLowerCase()||!(await pwOk(a,p))){
+    L.fails++;
+    if(L.fails>=5){const wait=Math.min(600,30*Math.pow(2,Math.max(0,L.fails-5)));L.until=Date.now()+wait*1000;putLock(L);return err("Too many attempts. Locked for "+wait+" seconds."),false}
+    putLock(L);return err("Wrong username or password. "+(5-L.fails)+" tries left."),false;
+  }
+  putLock({fails:0,until:0});set("aErr","");setSession(a.user);enterApp();return false;
+}
+function enterApp(){document.body.classList.remove("locked");set("whoami",sessionUser()||"");bumpIdle();render();cloudStart()}
+function signOut(){setSession(null);clearTimeout(idleT);showAuth()}
+function openPw(){document.getElementById("pwOld").value="";document.getElementById("pwNew").value="";set("pwErr","");document.getElementById("pwModal").classList.add("open")}
+async function changePw(){
+  const a=getAuth(),o=document.getElementById("pwOld").value,n=document.getElementById("pwNew").value;
+  if(!(await pwOk(a,o))) return set("pwErr","Current password is wrong.");
+  if(n.length<6) return set("pwErr","New password must be at least 6 characters.");
+  const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  putAuth({user:a.user,salt,hash:await hashPw(salt,n)});
+  document.getElementById("pwModal").classList.remove("open");toast("Password updated");
+}
+
+/* ---------- cloud auto-send (server runs the schedule, see functions/index.js) ---------- */
+function cloudCfg(){const s=load();s.cloud=Object.assign({on:false,url:"",key:"",pnid:"",mode:"template",prefix:"fu_",lang:"en"},s.cloud||{});return s.cloud}
+const cloudReady=()=>{const c=cloudCfg();return c.on&&c.url&&c.key};
+const apiBase=()=>cloudCfg().url.replace(/\/+$/,"");
+function setCloudStatus(m){const e=document.getElementById("cStatus");if(e)e.textContent=m;const b=document.getElementById("cloudBadge");if(b)b.textContent=cloudReady()?"● ON":""}
+let syncT=null,pullT=null;
+function cloudSoon(){if(!mem||!mem.cloud||!cloudReady())return;clearTimeout(syncT);syncT=setTimeout(cloudPush,1500)}
+async function cloudPush(){
+  const s=load(),c=cloudCfg();if(!cloudReady())return;
+  if(s.offset){setCloudStatus("Not synced: demo date is active (press Reset)");return}
+  try{
+    const r=await fetch(apiBase(),{method:"POST",headers:{"Content-Type":"application/json","x-sync-key":c.key},body:JSON.stringify({projects:s.projects,rules:s.rules,tpl:s.tpl,defaultTpl:DEFAULT_TPL,sign:s.sign,cap:s.cap,cc:s.cc,start:s.start,log:s.log,events:s.events,scheduled:s.scheduled||[],cloud:{on:c.on,pnid:c.pnid,mode:c.mode,prefix:c.prefix,lang:c.lang}})});
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("HTTP "+r.status));
+    setCloudStatus("Synced "+new Date().toLocaleTimeString());
+  }catch(e){setCloudStatus("Sync failed: "+e.message)}
+}
+function mergeLogs(a,b){
+  const out=Object.assign({},a);
+  for(const id of Object.keys(b||{})){const x=out[id],y=b[id];
+    if(!x)out[id]=y;else if(x.stage!==y.stage)out[id]=(y.lastAt||0)>=(x.lastAt||0)?y:x;
+    else out[id]=((y.lastAt||0)>(x.lastAt||0)||((y.lastAt||0)===(x.lastAt||0)&&y.count>x.count))?y:x}
+  return out;
+}
+async function cloudPull(){
+  if(!cloudReady())return false;const s=load(),c=cloudCfg();
+  try{
+    const r=await fetch(apiBase(),{headers:{"x-sync-key":c.key}});const j=await r.json();if(!r.ok)throw new Error(j.error||("HTTP "+r.status));
+    s.log=mergeLogs(s.log,j.log);s.scheduled=mergeSched(s.scheduled||[],j.scheduled||[]);
+    const seen=new Set();s.events=[...(j.events||[]),...s.events].filter(e=>{const k=e.day+e.id+e.ch;if(seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>b.day-a.day).slice(0,200);
+    try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){}
+    setCloudStatus("Connected"+(j.lastRun?" · last auto run "+new Date(j.lastRun.at).toLocaleString('en-IN')+" ("+j.lastRun.sent+" sent, "+j.lastRun.failed+" failed)":" · no auto run yet"));
+    render();return true;
+  }catch(e){setCloudStatus("Cannot reach cloud: "+e.message);return false}
+}
+async function cloudStart(){
+  setCloudStatus("");clearInterval(pullT);if(!cloudReady())return;
+  if(await cloudPull())cloudPush();
+  pullT=setInterval(cloudPull,60000);
+}
+function openCloud(){
+  const c=cloudCfg();
+  document.getElementById("cOn").classList.toggle("on",!!c.on);
+  cUrl.value=c.url;cKey.value=c.key;cPnid.value=c.pnid;cMode.value=c.mode;cPrefix.value=c.prefix;cLang.value=c.lang;
+  setCloudStatus(cloudReady()?"Connected settings saved.":"Not connected yet.");
+  document.getElementById("cloudModal").classList.add("open");
+}
+async function saveCloud(){
+  const s=load(),c=cloudCfg();
+  Object.assign(c,{on:document.getElementById("cOn").classList.contains("on"),url:cUrl.value.trim(),key:cKey.value.trim(),pnid:cPnid.value.trim(),mode:cMode.value,prefix:cPrefix.value.trim()||"fu_",lang:cLang.value.trim()||"en"});
+  if(c.on&&(!c.url||!c.key||!c.pnid)){toast("URL, sync key and phone number ID are required");return}
+  s.cloud=c;try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){}
+  if(!c.on){clearInterval(pullT);await cloudPush();setCloudStatus("Auto-send is off");render();return}
+  setCloudStatus("Connecting...");
+  if(await cloudPull()){await cloudPush();toast("Cloud auto-send saved")}
+}
+async function cloudRun(dry){
+  if(!cloudReady()){toast("Save and enable cloud auto-send first");return}
+  const missing=getProjects().filter(p=>!phoneValid(normPhone(p.phone)));
+  if(!dry&&!confirm("Send all follow-ups that are due right now to the clients' WhatsApp numbers?"))return;
+  await cloudPush();setCloudStatus(dry?"Running test...":"Sending...");
+  try{
+    const c=cloudCfg(),r=await fetch(apiBase()+"/run"+(dry?"?dry=1":""),{method:"POST",headers:{"x-sync-key":c.key}});const j=await r.json();if(!r.ok)throw new Error(j.error||("HTTP "+r.status));
+    if(j.skipped){setCloudStatus("Skipped: "+j.skipped);return}
+    const msg=(dry?"Test: would send ":"Sent ")+j.sent.length+" of "+j.due+" due"+(j.failed.length?", "+j.failed.length+" failed ("+j.failed[0].error+")":"")+(j.skipped.length?", "+j.skipped.length+" skipped (no valid phone)":"");
+    setCloudStatus(msg);toast(msg);if(!dry)await cloudPull();
+  }catch(e){setCloudStatus("Run failed: "+e.message)}
+}
+
+/* ---------- scheduling form ---------- */
+const schedList=()=>{const s=load();s.scheduled=s.scheduled||[];return s.scheduled};
+function mergeSched(local,server){
+  const by=Object.fromEntries(server.map(x=>[x.id,x]));
+  return local.map(l=>{const v=by[l.id];
+    if(v&&((v.sentCount||0)>(l.sentCount||0)||(v.failedAt||0)>(l.failedAt||0)))return Object.assign({},l,{status:v.status,nextAt:v.nextAt,lastSentAt:v.lastSentAt,sentCount:v.sentCount,error:v.error,failedAt:v.failedAt});
+    return l});
+}
+const toLocalInput=ms=>new Date(ms-new Date(ms).getTimezoneOffset()*60000).toISOString().slice(0,16);
+const fmtWhen=ms=>new Date(ms).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+function updSchedBadge(){const n=schedList().filter(x=>x.status==="pending").length;const b=document.getElementById("schedBadge");if(b)b.textContent=n?"("+n+")":""}
+function openSched(){
+  const ps=getProjects();
+  document.getElementById("sRecips").innerHTML=ps.map(p=>{const ph=normPhone(p.phone),ok=phoneValid(ph);
+    return `<label class="rc ${ok?'':'dis'}"><input type="checkbox" value="${esc(p.id)}" ${ok?'':'disabled'}> ${esc(p.client)} <small>${ok?'+'+ph:'no valid phone'}</small></label>`}).join("")||'<div class="empty">No projects</div>';
+  const t=new Date(Date.now()+3600000);t.setMinutes(0,0,0);
+  document.getElementById("sWhen").value=toLocalInput(t.getTime());
+  document.getElementById("sMsg").value="";document.getElementById("sRepeat").value="none";
+  document.getElementById("sWarn").textContent=cloudReady()?"":"Cloud auto-send is not enabled yet. Turn it on (Cloud auto-send button) or nothing will be sent.";
+  renderSchedList();document.getElementById("schedModal").classList.add("open");
+}
+function schedAll(on){document.querySelectorAll('#sRecips input:not(:disabled)').forEach(i=>i.checked=on)}
+function saveSched(){
+  const ids=[...document.querySelectorAll('#sRecips input:checked')].map(i=>i.value);
+  const text=document.getElementById("sMsg").value.trim(),when=document.getElementById("sWhen").value,rep=document.getElementById("sRepeat").value;
+  if(!ids.length){toast("Select at least one client");return}
+  if(!text){toast("Write the message");return}
+  if(!when){toast("Pick date and time");return}
+  const at=new Date(when).getTime();if(isNaN(at)){toast("Invalid date");return}
+  if(at<Date.now()-60000&&!confirm("That time has passed. It will be sent at the next 5-minute check. Continue?"))return;
+  const list=schedList(),ps=getProjects(),base=Date.now();
+  ids.forEach((id,i)=>{const p=ps.find(x=>x.id===id);if(!p)return;
+    list.push({id:"S"+base+"_"+i,projectId:p.id,client:p.client,phone:p.phone||"",text,nextAt:at,repeat:rep,status:"pending",sentCount:0,lastSentAt:0,failedAt:0,error:"",createdAt:base})});
+  save();renderSchedList();render();
+  document.getElementById("sMsg").value="";schedAll(false);
+  toast(ids.length+" message"+(ids.length>1?"s":"")+" scheduled");
+}
+function renderSchedList(){
+  const l=schedList().slice().sort((a,b)=>(a.status==="pending"?0:1)-(b.status==="pending"?0:1)||a.nextAt-b.nextAt);
+  const tagc={pending:"soon",sent:"done",failed:"late"};
+  document.getElementById("sList").innerHTML=l.length?l.map(x=>`<div class="srow"><div class="r"><b>${esc(x.client)}</b><span class="tag ${tagc[x.status]||'soon'}">${x.status==="pending"?"Scheduled":x.status==="sent"?"Sent":"Failed"}</span></div>
+    <small>${x.status==="sent"?"Sent "+fmtWhen(x.lastSentAt):fmtWhen(x.nextAt)}${x.repeat&&x.repeat!=="none"?" · repeats "+x.repeat+(x.sentCount?" · sent "+x.sentCount+"×":""):""}</small>
+    <small>${esc(x.text.length>110?x.text.slice(0,110)+"…":x.text)}</small>${x.error?`<small style="color:#c4351b">${esc(x.error)}</small>`:""}
+    <div style="text-align:right">${x.status==="failed"?`<button class="lnk" onclick="retrySched('${esc(x.id)}')">Retry</button> `:""}<button class="lnk" onclick="delSched('${esc(x.id)}')">${x.status==="pending"?"Cancel":"Delete"}</button></div></div>`).join(""):'<div class="hint">Nothing scheduled yet.</div>';
+  updSchedBadge();
+}
+function delSched(id){const s=load();s.scheduled=schedList().filter(x=>x.id!==id);save();renderSchedList()}
+function retrySched(id){const x=schedList().find(y=>y.id===id);if(!x)return;x.status="pending";x.error="";x.nextAt=Date.now();save();renderSchedList();toast("Will retry within 5 minutes")}
+if(sessionUser()) enterApp(); else showAuth();
+</script>
+</body>
+</html>
